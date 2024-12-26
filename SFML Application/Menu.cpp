@@ -532,7 +532,7 @@ const char* Menu::get_error_text(Parser::Error err) const
 	case Parser::Error::NO_TEXTURES:
 		return "Please select all textures.";
 	case Parser::Error::BAD_SYMBOL:
-		return "Map should consist of \"01PC \" symbols.";
+		return "Map should consist of \".1PC \" symbols.";
 	case Parser::Error::BAD_BORDER:
 		return "Map should be surrouded by walls.";
 	case Parser::Error::NO_PATH:

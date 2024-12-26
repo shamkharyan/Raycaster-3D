@@ -19,6 +19,7 @@ public:
 	void render();
 	void handle_events(sf::Event& event, Page& current, bool& game_started);
 	void init();
+	void update();
 private:
 	void clear();
 	void move_forward();
@@ -48,6 +49,7 @@ private:
 	sf::Texture coin_texture;
 	sf::Font	font;
 	sf::Clock	clk;
+	sf::Clock	dt;
 	sf::SoundBuffer coin_sound_buffer;
 	sf::Sound		coin_sound;
 	sf::SoundBuffer win_sound_buffer;

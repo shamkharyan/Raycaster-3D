@@ -8,8 +8,13 @@ struct Player
 	sf::Vector2f	pos;
 	sf::Vector2f	dir;
 	sf::Vector2f	plane;
+	float			base_mov_speed;
 	float			mov_speed;
 	float			rot_speed;
+	bool			up_enabled;
+	bool			down_enabled;
+	bool			left_enabled;
+	bool			right_enabled;
 };
 
 #endif //PLAYER_H_

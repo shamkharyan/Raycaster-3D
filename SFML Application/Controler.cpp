@@ -10,8 +10,10 @@ Controler::Controler() {}
 
 void Controler::run()
 {
+	const std::size_t WINDOW_WIDTH = 1024; //1024
+	const std::size_t WINDOW_HEIGHT = 768; //768
 	Page current = Page::MENU_MAIN;
-	sf::RenderWindow window(sf::VideoMode(1024, 768), "Raycaster 3D", sf::Style::Close);
+	sf::RenderWindow window(sf::VideoMode(WINDOW_WIDTH, WINDOW_HEIGHT), "Raycaster 3D", sf::Style::Close);
 	sf::Event event;
 	Settings settings;
 	Parser parser(settings);
@@ -52,7 +54,7 @@ void Controler::run()
 				game_started = true;
 				gameplay.init();
 			}
-			gameplay.render();
+			gameplay.update();
 			break;
 		}
 		window.display();

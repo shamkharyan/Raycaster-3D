@@ -31,7 +31,7 @@ void Gameplay::init()
 	player.pos = static_cast<sf::Vector2f>(parser.get_player());
 	player.pos.x += 0.5f;
 	player.pos.y += 0.5f;
-	map[player.pos.y][player.pos.x] = '0';
+	map[player.pos.y][player.pos.x] = '.';
 	max_score = coins.size();
 	player.dir = sf::Vector2f(0, -1); //North
 	switch (settings.get_fov())
@@ -49,13 +49,13 @@ void Gameplay::init()
 	switch (settings.get_mov_speed())
 	{
 	case Settings::Option::LEFT:
-		player.mov_speed = 0.1f;
+		player.base_mov_speed = 0.0025f;
 		break;
 	case Settings::Option::MIDDLE:
-		player.mov_speed = 0.2f;
+		player.base_mov_speed = 0.005f;
 		break;
 	case Settings::Option::RIGHT:
-		player.mov_speed = 0.5f;
+		player.base_mov_speed = 0.01f;
 		break;
 	}
 	switch (settings.get_rot_speed())
@@ -160,7 +160,7 @@ void Gameplay::render()
 
 			if (distance < 0.5f)
 			{
-				map[coin_pos.y][coin_pos.x] = '0';
+				map[coin_pos.y][coin_pos.x] = '.';
 				++score;
 				if (settings.get_sound())
 				{
@@ -220,10 +220,10 @@ void Gameplay::render_coin(const sf::Vector2f& coin, const std::vector<float>& z
 	{
 		if (transform.y < z_buffer[x])
 		{
-			int texX = static_cast<int>((x - (coin_screen_x - coin_width / 2)) * coin_texture.getSize().x / coin_width);
+			int tex_x = static_cast<int>((x - (coin_screen_x - coin_width / 2)) * coin_texture.getSize().x / coin_width);
 
 			sf::Sprite coin(coin_texture);
-			coin.setTextureRect(sf::IntRect(texX, 0, 1, coin_texture.getSize().y));
+			coin.setTextureRect(sf::IntRect(tex_x, 0, 1, coin_texture.getSize().y));
 			coin.setScale(1, static_cast<float>(coin_height) / coin_texture.getSize().y);
 			coin.setPosition(static_cast<float>(x), static_cast<float>(draw_start_y));
 
@@ -280,15 +280,17 @@ void Gameplay::render_score()
 
 void Gameplay::handle_events(sf::Event& event, Page& current, bool& game_started)
 {
-	if (event.type == sf::Event::KeyPressed) {
+	bool is_key_pressed = event.type == sf::Event::KeyPressed;
+
+	if (is_key_pressed || event.type == sf::Event::KeyReleased) {
 		if (event.key.code == sf::Keyboard::W)
-			move_forward();
+			player.up_enabled = is_key_pressed;
 		else if (event.key.code == sf::Keyboard::S)
-			move_backward();
+			player.down_enabled = is_key_pressed;
 		else if (event.key.code == sf::Keyboard::A)
-			move_left();
+			player.left_enabled = is_key_pressed;
 		else if (event.key.code == sf::Keyboard::D)
-			move_right();
+			player.right_enabled = is_key_pressed;
 		else if (event.key.code == sf::Keyboard::Escape)
 		{
 			clear();
@@ -386,4 +388,18 @@ void Gameplay::clear()
 	coins.clear();
 	score = 0;
 	max_score = 0;
+}
+
+void Gameplay::update()
+{
+	player.mov_speed = player.base_mov_speed * dt.restart().asMilliseconds();
+	if (player.up_enabled)
+		move_forward();
+	if (player.down_enabled)
+		move_backward();
+	if (player.left_enabled)
+		move_left();
+	if (player.right_enabled)
+		move_right();
+	render();
 }

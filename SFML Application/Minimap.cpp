@@ -47,7 +47,7 @@ void Minimap::render_map(const std::vector<std::string>& map, Player& player)
 			if (rect_pos.x >= MAP_OFFSET.x && rect_pos.x < MAP_OFFSET.x + MAP_SIZE - 2 * BORDER_WIDTH &&
 				rect_pos.y >= MAP_OFFSET.y && rect_pos.y < MAP_OFFSET.y + MAP_SIZE - 2 * BORDER_WIDTH)
 			{
-				if (map[y][x] == '1' || map[y][x] == '0' || tolower(map[y][x]) == 'c')
+				if (map[y][x] == '1' || map[y][x] == '.' || tolower(map[y][x]) == 'c')
 				{
 					recs.push_back(sf::RectangleShape());
 					recs.back().setSize(sf::Vector2f(BLOCK_SCALE, BLOCK_SCALE));

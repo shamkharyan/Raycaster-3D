@@ -29,7 +29,7 @@ Parser::Error Parser::parse_map()
 	{
 		if (line.find_first_not_of(" \t") == std::string::npos)
 			continue;
-		if (std::strspn(line.c_str(), "01CcPp ") != line.length())
+		if (std::strspn(line.c_str(), ".1CcPp ") != line.length())
 			return Parser::Error::BAD_SYMBOL;
 		map.push_back(line);
 		
@@ -59,7 +59,7 @@ Parser::Error Parser::check_borders()
 		std::size_t width = map[i].size();
 		for (std::size_t j = 0; j < width; ++j)
 		{
-			if (tolower(map[i][j]) == 'p' || tolower(map[i][j]) == 'c' || map[i][j] == '0')
+			if (tolower(map[i][j]) == 'p' || tolower(map[i][j]) == 'c' || map[i][j] == '.')
 			{
 				if (i == 0 || i == height - 1 || j == 0 || j == width - 1 ||
 					map[i + 1][j] == ' ' || map[i - 1][j] == ' ' ||
@@ -117,7 +117,7 @@ Parser::Error Parser::check_paths()
 {
 	std::size_t c = coins.size();
 	std::vector<std::string> copy_map(map);
-	copy_map[player.y][player.x] = '0';
+	copy_map[player.y][player.x] = '.';
 	flood_fill(copy_map, player, c);
 	if (c != 0)
 		return Parser::Error::NO_PATH;
