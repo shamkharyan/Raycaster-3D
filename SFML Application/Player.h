@@ -15,6 +15,7 @@ struct Player
 	bool			down_enabled;
 	bool			left_enabled;
 	bool			right_enabled;
+	bool			sprint;
 };
 
 #endif //PLAYER_H_

@@ -31,6 +31,11 @@ void Gameplay::init()
 	player.pos = static_cast<sf::Vector2f>(parser.get_player());
 	player.pos.x += 0.5f;
 	player.pos.y += 0.5f;
+	player.up_enabled = false;
+	player.down_enabled = false;
+	player.left_enabled = false;
+	player.right_enabled = false;
+	player.sprint = false;
 	map[player.pos.y][player.pos.x] = '.';
 	max_score = coins.size();
 	player.dir = sf::Vector2f(0, -1); //North
@@ -134,15 +139,32 @@ void Gameplay::render()
         if (hit_info.side == 1)
             tex_x = wall_texture->getSize().x - tex_x - 1;
 
-        int tex_y = static_cast<int>(
-            (draw_start - window.getSize().y / 2.0 + line_height / 2.0) * wall_texture->getSize().y / line_height);
+		sf::VertexArray wall(sf::Quads, 4);
 
-        sf::Sprite wall_sprinte(*wall_texture);
-		wall_sprinte.setTextureRect(sf::IntRect(tex_x, tex_y, 1, wall_texture->getSize().y));
-		wall_sprinte.setScale(1, static_cast<float>(line_height) / wall_texture->getSize().y);
-		wall_sprinte.setPosition(x, draw_start);
+		float texture_ratio = static_cast<float>(wall_texture->getSize().y) / line_height;
 
-        window.draw(wall_sprinte);
+		float tex_y = (draw_start - window.getSize().y / 2.f + line_height / 2.f) * texture_ratio;
+		wall[0].position = sf::Vector2f(x, draw_start);
+		wall[0].texCoords = sf::Vector2f(tex_x, tex_y);
+
+		wall[1].position = sf::Vector2f(x + 1, draw_start);
+		wall[1].texCoords = sf::Vector2f(tex_x + 1, tex_y);
+
+		tex_y = (draw_end - window.getSize().y / 2.f + line_height / 2.f) * texture_ratio;
+		wall[2].position = sf::Vector2f(x + 1, draw_end);
+		wall[2].texCoords = sf::Vector2f(tex_x + 1, tex_y);
+
+		wall[3].position = sf::Vector2f(x, draw_end);
+		wall[3].texCoords = sf::Vector2f(tex_x, tex_y);
+
+		window.draw(wall, wall_texture);
+
+        // sf::Sprite wall_sprite(*wall_texture);
+		// wall_sprite.setTextureRect(sf::IntRect(tex_x, tex_y, 1, wall_texture->getSize().y));
+		// wall_sprite.setScale(1, static_cast<float>(line_height) / wall_texture->getSize().y);
+		// wall_sprite.setPosition(x, draw_start);
+
+		// window.draw(wall_sprite);
 
         for (int y = draw_start; y < draw_end; ++y)
         {
@@ -291,6 +313,8 @@ void Gameplay::handle_events(sf::Event& event, Page& current, bool& game_started
 			player.left_enabled = is_key_pressed;
 		else if (event.key.code == sf::Keyboard::D)
 			player.right_enabled = is_key_pressed;
+		else if (event.key.code == sf::Keyboard::LShift)
+			player.sprint = is_key_pressed;
 		else if (event.key.code == sf::Keyboard::Escape)
 		{
 			clear();
@@ -304,39 +328,42 @@ void Gameplay::handle_events(sf::Event& event, Page& current, bool& game_started
 
 void Gameplay::move_forward()
 {
-	sf::Vector2f new_pos = player.pos + player.dir * player.mov_speed;
+	float speed = (player.sprint) ? 2 * player.mov_speed : player.mov_speed;
+	sf::Vector2f new_pos = player.pos + player.dir * speed;
 
 	if (new_pos.y >= 0 && new_pos.y < map.size() &&
 		map[new_pos.y][player.pos.x] != '1')
 		player.pos.y = new_pos.y;
-	if (new_pos.x >= 0 && new_pos.x < map[0].size() &&
+	if (new_pos.x >= 0 && new_pos.x < map[static_cast<int>(player.pos.y)].size() &&
 		map[player.pos.y][new_pos.x] != '1')
 		player.pos.x = new_pos.x;
 }
 void Gameplay::move_backward()
 {
-	sf::Vector2f new_pos = player.pos - player.dir * player.mov_speed;
+	float speed = (player.sprint) ? 2 * player.mov_speed : player.mov_speed;
+	sf::Vector2f new_pos = player.pos - player.dir * speed;
 
 	if (new_pos.y >= 0 && new_pos.y < map.size() &&
 		map[new_pos.y][player.pos.x] != '1')
 		player.pos.y = new_pos.y;
-	if (new_pos.x >= 0 && new_pos.x < map[0].size() &&
+	if (new_pos.x >= 0 && new_pos.x < map[static_cast<int>(player.pos.y)].size() &&
 		map[player.pos.y][new_pos.x] != '1')
 		player.pos.x = new_pos.x;
 }
 void Gameplay::move_right()
 {
+	float speed = (player.sprint) ? 2 * player.mov_speed : player.mov_speed;
 	sf::Vector2f left_dir = sf::Vector2f(-player.dir.y, player.dir.x);
 
 	sf::Vector2f new_pos = sf::Vector2f(
-		player.pos.x + left_dir.x * player.mov_speed,
-		player.pos.y + left_dir.y * player.mov_speed
+		player.pos.x + left_dir.x * speed,
+		player.pos.y + left_dir.y * speed
 	);
 
 	if (new_pos.y >= 0 && new_pos.y < map.size() &&
 		map[new_pos.y][player.pos.x] != '1')
 		player.pos.y = new_pos.y;
-	if (new_pos.x >= 0 && new_pos.x < map[0].size() &&
+	if (new_pos.x >= 0 && new_pos.x < map[static_cast<int>(player.pos.y)].size() &&
 		map[player.pos.y][new_pos.x] != '1')
 		player.pos.x = new_pos.x;
 }
@@ -344,17 +371,18 @@ void Gameplay::move_right()
 
 void Gameplay::move_left()
 {
+	float speed = (player.sprint) ? 2 * player.mov_speed : player.mov_speed;
 	sf::Vector2f left_dir = sf::Vector2f(-player.dir.y, player.dir.x);
 
 	sf::Vector2f new_pos = sf::Vector2f(
-		player.pos.x - left_dir.x * player.mov_speed,
-		player.pos.y - left_dir.y * player.mov_speed
+		player.pos.x - left_dir.x * speed,
+		player.pos.y - left_dir.y * speed
 	);
 
 	if (new_pos.y >= 0 && new_pos.y < map.size() &&
 		map[new_pos.y][player.pos.x] != '1')
 		player.pos.y = new_pos.y;
-	if (new_pos.x >= 0 && new_pos.x < map[0].size() &&
+	if (new_pos.x >= 0 && new_pos.x < map[static_cast<int>(player.pos.y)].size() &&
 		map[player.pos.y][new_pos.x] != '1')
 		player.pos.x = new_pos.x;
 }
