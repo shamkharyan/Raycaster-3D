@@ -3,7 +3,6 @@
 
 #include <SFML/Graphics.hpp>
 #include <string>
-#include <unordered_map>
 #include "tinyfiledialogs.h"
 
 class Settings

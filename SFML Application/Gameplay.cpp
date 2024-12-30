@@ -85,10 +85,68 @@ void Gameplay::init()
 
 void Gameplay::render_ground()
 {
-	sf::RectangleShape ground(sf::Vector2f(window.getSize().x, window.getSize().y / 2));
-	ground.setPosition(sf::Vector2f(0, window.getSize().y / 2));
-	ground.setFillColor(settings.get_color(settings.get_ground_color()));
-	window.draw(ground);
+	int half_height = window.getSize().y / 2;
+	int window_width = window.getSize().x;
+	int window_height = window.getSize().y;
+
+	// Получаем размеры текстуры
+	const auto& texture_size = WE_texture.getSize();
+	int tex_width = texture_size.x;
+	int tex_height = texture_size.y;
+
+	// Создаем изображение для пола
+	sf::Image floor_image;
+	floor_image.create(window_width, half_height, sf::Color::Black);  // Изображение пола для нижней половины экрана
+
+	sf::Image tex_image = WE_texture.copyToImage();
+
+	for (int y = half_height; y < window_height; ++y)
+	{
+		float row_distance = (window_height / (2.0f * (y - half_height))) * 1;
+		sf::Vector2f floor_start = player.pos + row_distance * (player.dir - player.plane);
+		sf::Vector2f floor_end = player.pos + row_distance * (player.dir + player.plane);
+		sf::Vector2f floor_step = (floor_end - floor_start) / (float)window_width;
+
+		sf::Vector2f floor_pos = floor_start;
+
+		for (int x = 0; x < window_width; ++x)
+		{
+			// Вычисляем координаты текстуры
+			int tex_x = static_cast<int>(floor_pos.x * tex_width) % tex_width;
+			int tex_y = static_cast<int>(floor_pos.y * tex_height) % tex_height;
+
+			// Ограничиваем координаты текстуры вручную
+			if (tex_x < 0) tex_x = 0;
+			if (tex_x >= tex_width) tex_x = tex_width - 1;
+
+			if (tex_y < 0) tex_y = 0;
+			if (tex_y >= tex_height) tex_y = tex_height - 1;
+
+			// Получаем цвет пикселя из текстуры
+			sf::Color color = tex_image.getPixel(tex_x, tex_y);
+
+			// float brightness_factor = 2.f / window_height * y - 1; // Чем выше, тем темнее
+			// int r = static_cast<int>(color.r * brightness_factor);
+			// int g = static_cast<int>(color.g * brightness_factor);
+			// int b = static_cast<int>(color.b * brightness_factor);
+
+			// Устанавливаем пиксель в изображении пола
+			floor_image.setPixel(x, y - half_height, color);
+
+			// Шаг по полу
+			floor_pos += floor_step;
+		}
+	}
+
+	// Создаем текстуру из изображения пола
+	sf::Texture floor_texture;
+	floor_texture.loadFromImage(floor_image);
+
+	// Отображаем текстуру пола
+	sf::Sprite floor_sprite(floor_texture);
+	floor_sprite.setPosition(0, half_height); // Чтобы правильно отобразить пол
+
+	window.draw(floor_sprite);  // Отрисовываем пол
 }
 
 void Gameplay::render()
